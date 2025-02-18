@@ -37,18 +37,20 @@ stage("Debug SSH Access") {
     }
 }
 
-  stage("Setup parameters") {
-      script {
-        parameters([
-            string(
-            defaultValue: 'main',
-            name: 'branch',
-            trim: true)
-          ]),
-    ])
-        
-      }
-     }
+stage("Setup parameters") {
+    script {
+        properties([
+            parameters([
+                string(
+                    defaultValue: 'main',
+                    name: 'branch',
+                    trim: true
+                )
+            ])
+        ])
+    }
+}
+
   stage ("Get Dockerfile , default.config")
     {
          configPath = sh (script: 'echo $(pwd)',returnStdout: true).trim()
