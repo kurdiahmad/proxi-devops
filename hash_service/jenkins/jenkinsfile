@@ -22,38 +22,40 @@ def helmDir         = "slashtec/devops-tarjama/tx/${envName}/${serviceName}/helm
 
 
 
-node  () {
+node () {
+    stage("Setup parameters") {
+        script {
+            properties([
+                buildDiscarder(logRotator(numToKeepStr: '30')),
+                disableConcurrentBuilds(),
+                disableResume(),
+                parameters([
+                    string(
+                        defaultValue: 'main',
+                        name: 'branch',
+                        trim: true
+                    )
+                ])
+            ])
+        }
+    }
 
-
-  stage("Setup parameters") {
-      script {
-        properties([
-        buildDiscarder(
-            logRotator(
-                artifactDaysToKeepStr: '',
-                artifactNumToKeepStr: '',
-                daysToKeepStr: '',
-                numToKeepStr: '30'
-            )
-        ),
-        disableConcurrentBuilds(),
-        disableResume(),
-        parameters([
-            string(
-            defaultValue: 'main',
-            name: 'branch',
-            trim: true)
-          ]),
-        rateLimitBuilds([count: 1, durationName: 'minute', userBoost: false])
-    ])
-        
-      }
-     }
-  stage ("Get the app code")
-    {
-      checkout([$class: 'GitSCM', branches: [[name: "${branchName}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])    
+    stage ("Get the app code") {
+        steps {
+            script {
+                sh 'mkdir -p ~/.ssh && ssh-keyscan -H github.com >> ~/.ssh/known_hosts'
+                checkout([$class: 'GitSCM', 
+                    branches: [[name: "${branchName}"]], 
+                    extensions: [], 
+                    userRemoteConfigs: [[
+                        credentialsId: 'github-ssh',  // Ensure this matches Jenkins credentials
+                        url: "${gitUrlCode}"
+                    ]]
+                ])
             }
-
+        }
+    }
 }
+
 
  
