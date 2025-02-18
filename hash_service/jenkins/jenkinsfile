@@ -24,10 +24,7 @@ def helmDir         = "slashtec/devops-tarjama/tx/${envName}/${serviceName}/helm
 
 node  () {
 
-stage ('cleanup')
-  {
-  cleanWs()
-   }
+
   stage("Setup parameters") {
       script {
         properties([
