@@ -28,6 +28,15 @@ stage ('cleanup')
   {
   cleanWs()
    }
+
+stage("Debug SSH Access") {
+    steps {
+        script {
+            sh "ssh -vT git@github.com || true"
+        }
+    }
+}
+
   stage("Setup parameters") {
       script {
         parameters([
