@@ -44,8 +44,17 @@ stage ('cleanup')
     {
          configPath = sh (script: 'echo $(pwd)',returnStdout: true).trim()
     }
-  stage ("Get the app code")
-    {
-      checkout([$class: 'GitSCM', branches: [[name: "${branch}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])    
-
-            }
+stage("Clone Application Code") {
+    steps {
+        script {
+            checkout([$class: 'GitSCM', 
+                branches: [[name: "${BRANCH_NAME}"]], 
+                extensions: [], 
+                userRemoteConfigs: [[
+                    credentialsId: 'github-ssh',  // Use the ID from Jenkins Credentials
+                    url: "${GIT_URL_CODE}"
+                ]]
+            ])
+        }
+    }
+}
