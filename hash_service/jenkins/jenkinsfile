@@ -1,4 +1,4 @@
-def branchName      =  "staging"
+def branchName      =  "main"
 def gitUrl          =  "git@github.com:kurdiahmad/proxi-devops.git"
 def gitUrlCode      =  "git@github.com:kurdiahmad/hash_service.git"
 def serviceName     =  "hash_service"
