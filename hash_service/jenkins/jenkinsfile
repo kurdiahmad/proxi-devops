@@ -41,18 +41,16 @@ node () {
     }
 
     stage ("Get the app code") {
-        steps {
-            script {
-                sh 'mkdir -p ~/.ssh && ssh-keyscan -H github.com >> ~/.ssh/known_hosts'
-                checkout([$class: 'GitSCM', 
-                    branches: [[name: "${branchName}"]], 
-                    extensions: [], 
-                    userRemoteConfigs: [[
-                        credentialsId: 'github-ssh',  // Ensure this matches Jenkins credentials
-                        url: "${gitUrlCode}"
-                    ]]
-                ])
-            }
+        script {
+            sh 'mkdir -p ~/.ssh && ssh-keyscan -H github.com >> ~/.ssh/known_hosts'
+            checkout([$class: 'GitSCM', 
+                branches: [[name: "${branchName}"]], 
+                extensions: [], 
+                userRemoteConfigs: [[
+                    credentialsId: 'github-ssh', 
+                    url: "${gitUrlCode}"
+                ]]
+            ])
         }
     }
 }
