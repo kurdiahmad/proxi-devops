@@ -61,5 +61,6 @@ stage ('cleanup')
             commitId = readFile('.git/commit-id').trim();
             echo "commitId = ${commitId}";
         }
+}
 
  
