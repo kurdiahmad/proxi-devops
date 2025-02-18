@@ -1,89 +1,65 @@
-pipeline {
-    agent any
+def branchName      =  "staging"
+def gitUrl          =  "git@github.com:kurdiahmad/proxi-devops.git"
+def gitUrlCode      =  "git@github.com:kurdiahmad/hash_service.git"
+def serviceName     =  "hash_service"
+def EnvName         = "staging"
+def imageTag        = "${EnvName}-${BUILD_NUMBER}"
+def registryId      =  "849310207669"
+def awsRegion       =  "us-east-1"
+def ecrUrl          =  "849310207669.dkr.ecr.us-east-1.amazonaws.com"
+def awsCredsId      =  "aws-credentials"
+def gitCred         =  "Bitbucket-jenkins"
+def configPath      = "dockerfile-and-default-config"
+def dockerfile      = "Dockerfile-${serviceName}"
+//AppConfig Params
+def applicationName = "t-marketing-email"
+def envName = "staging"
+def configName = "staging"
+def clientId = "${applicationName}"-"${envName}"
 
-    environment {
-        branchName = "main"
-        gitUrl = "git@github.com:kurdiahmad/proxi-devops.git"
-        gitUrlCode = "git@github.com:kurdiahmad/hash_service.git"
-        serviceName = "hash_service"
-        EnvName = "test"
-        imageTag = "${EnvName}-${BUILD_NUMBER}"
-        registryId = "849310207669"
-        awsRegion = "us-east-1"
-        ecrUrl = "849310207669.dkr.ecr.us-east-1.amazonaws.com"
-        awsCredsId = "aws-credentials"
-        gitCred = "Bitbucket-jenkins"
-        configPath = "dockerfile-and-default-config"
-        dockerfile = "Dockerfile-${serviceName}"
-        applicationName = "hash_service"
-        envName = "dev"
-        configName = "dev"
-        clientId = "${applicationName}-${envName}"
-        namespace = "tx"
-        helmDir = "slashtec/devops-tarjama/tx/${envName}/${serviceName}/helm"
-    }
+def namespace       = "tx"
+def helmDir         = "slashtec/devops-tarjama/tx/${envName}/${serviceName}/helm"
 
-    stages {
-        stage("Cleanup") {
-            steps {
-                cleanWs()
+
+
+node  () {
+
+stage ('cleanup')
+  {
+  cleanWs()
+   }
+  stage("Setup parameters") {
+      script {
+        properties([
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                daysToKeepStr: '',
+                numToKeepStr: '30'
+            )
+        ),
+        disableConcurrentBuilds(),
+        disableResume(),
+        parameters([
+            string(
+            defaultValue: 'main',
+            name: 'branch',
+            trim: true)
+          ]),
+        rateLimitBuilds([count: 1, durationName: 'minute', userBoost: false])
+    ])
+        
+      }
+     }
+  stage ("Get the app code")
+    {
+      checkout([$class: 'GitSCM', branches: [[name: "${branch}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])    
             }
+  stage('Get the Commit ID') {
+            sh 'git rev-parse --short HEAD > .git/commit-id';
+            commitId = readFile('.git/commit-id').trim();
+            echo "commitId = ${commitId}";
         }
 
-        stage("Debug SSH Access") {
-            steps {
-                script {
-                    sh "ssh -vT git@github.com || true"
-                }
-            }
-        }
-
-        stage("Setup Parameters") {
-            steps {
-                script {
-                    properties([
-                        parameters([
-                            string(
-                                defaultValue: 'main',
-                                name: 'branch',
-                                trim: true
-                            )
-                        ])
-                    ])
-                }
-            }
-        }
-
-        stage("Get Dockerfile & Config Path") {
-            steps {
-                script {
-                    configPath = sh(script: 'echo $(pwd)', returnStdout: true).trim()
-                }
-            }
-        }
-
-        stage("Clone Application Code") {
-            steps {
-                script {
-                    checkout([$class: 'GitSCM', 
-                        branches: [[name: "${branchName}"]], 
-                        extensions: [], 
-                        userRemoteConfigs: [[
-                            credentialsId: 'github-ssh',  // Ensure this matches Jenkins credentials
-                            url: "${gitUrlCode}"
-                        ]]
-                    ])
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo "Pipeline executed successfully!"
-        }
-        failure {
-            echo "Pipeline failed!"
-        }
-    }
-}
+ 
